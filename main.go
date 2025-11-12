@@ -4,7 +4,8 @@ import (
 	"fmt"
 )
 
-// Functional helpers
+// ===== Functional Core =====
+
 func Map[T any, R any](xs []T, f func(T) R) []R {
 	out := make([]R, len(xs))
 	for i, v := range xs {
@@ -31,6 +32,8 @@ func Foldl[T any, R any](xs []T, init R, f func(R, T) R) R {
 	return acc
 }
 
+// ===== Entry Point =====
+
 func main() {
 	nums := []int{1, 2, 3, 4, 5}
 
@@ -38,7 +41,7 @@ func main() {
 	filtered := Filter(squares, func(x int) bool { return x > 5 })
 	sum := Foldl(filtered, 0, func(acc, x int) int { return acc + x })
 
-	fmt.Println("squares:", squares)
-	fmt.Println("filtered:", filtered)
-	fmt.Println("sum:", sum)
+	fmt.Println("🟣 squares :", squares)
+	fmt.Println("🟢 filtered:", filtered)
+	fmt.Println("🟡 sum     :", sum)
 }
