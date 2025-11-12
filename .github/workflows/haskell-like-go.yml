@@ -1,0 +1,61 @@
+name: "🐹 Haskell-like-Go — Functional Fusion (v1.0 / Multi-OS)"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ closed ]
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: haskell-like-go-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-3os:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: "🧭 Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "🔧 Setup Go"
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: "🛠️ Build Project"
+        run: |
+          go build -o dist/haskell_like_go main.go
+
+      - name: "🧾 Generate ProofLedger"
+        shell: bash
+        run: |
+          echo "🧾 Generating ProofLedger..."
+          cd dist
+          sha256sum haskell_like_go* > PROOF_LEDGER.txt 2>/dev/null || shasum -a 256 haskell_like_go* > PROOF_LEDGER.txt
+          cat PROOF_LEDGER.txt
+
+      - name: "🚀 Release (Auto)"
+        uses: softprops/action-gh-release@v1
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "Haskell-like-Go Auto Release ${{ github.run_number }}"
+          body: |
+            🐹 Functional Go + Haskell Fusion Build
+            - Includes ProofLedger hash verification
+            - Built automatically for Linux / macOS / Windows
+          files: |
+            dist/haskell_like_go*
+            dist/PROOF_LEDGER.txt
