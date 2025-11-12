@@ -1,4 +1,4 @@
-name: "🐹 Haskell-like-Go — Functional Fusion (v1.0 / Multi-OS)"
+name: "🐹 Haskell-like-Go — Functional Fusion (v3OS Full Release v1.0)"
 
 on:
   push:
@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   build-3os:
+    name: "Build & Release (${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -29,13 +30,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: "🔧 Setup Go"
+      - name: "🔧 Setup Go Environment"
         uses: actions/setup-go@v5
         with:
           go-version: "1.23"
 
-      - name: "🛠️ Build Project"
+      - name: "🛠️ Build Executable"
         run: |
+          mkdir -p dist
           go build -o dist/haskell_like_go main.go
 
       - name: "🧾 Generate ProofLedger"
@@ -44,18 +46,29 @@ jobs:
           echo "🧾 Generating ProofLedger..."
           cd dist
           sha256sum haskell_like_go* > PROOF_LEDGER.txt 2>/dev/null || shasum -a 256 haskell_like_go* > PROOF_LEDGER.txt
+          echo "✅ ProofLedger generated:"
           cat PROOF_LEDGER.txt
 
-      - name: "🚀 Release (Auto)"
+      - name: "🗜️ Normalize Executable Name"
+        shell: bash
+        run: |
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mv haskell_like_go haskell_like_go.exe 2>/dev/null || true
+          fi
+          ls -al
+
+      - name: "🚀 Publish Multi-OS Release"
         uses: softprops/action-gh-release@v1
         if: github.ref == 'refs/heads/main'
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: "Haskell-like-Go Auto Release ${{ github.run_number }}"
+          name: "Haskell-like-Go — Full 3OS Build #${{ github.run_number }}"
           body: |
-            🐹 Functional Go + Haskell Fusion Build
-            - Includes ProofLedger hash verification
-            - Built automatically for Linux / macOS / Windows
+            🐹 **Haskell-like-Go (Full Multi-OS Edition)**  
+            Functional Fusion Compiler Prototype  
+            - ✅ Linux / macOS / Windows 완전지원  
+            - 🔒 ProofLedger 자동 생성  
+            - 🧩 Auto-build + Auto-release pipeline  
           files: |
-            dist/haskell_like_go*
-            dist/PROOF_LEDGER.txt
+            dist/**
